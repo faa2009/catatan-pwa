@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Catatan Saya!</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#2196f3">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #000;
+      color: white;
+      background-image: url('https://raw.githubusercontent.com/icehaunter/css-star-background/main/star-bg.png');
+      background-repeat: repeat;
+      background-size: cover;
+    }
+    .container {
+      background: rgba(0, 0, 0, 0.7);
+      padding: 30px;
+      border-radius: 16px;
+      max-width: 700px;
+      margin: auto;
+      box-shadow: 0 20px 30px rgba(255, 255, 255, 0.15);
+      position: relative;
+    }
+    .container::after {
+      content: "";
+      position: absolute;
+      bottom: -10px;
+      left: 20px;
+      right: 20px;
+      height: 15px;
+      border-radius: 20px;
+      background: linear-gradient(to right, #4caf50, #2196f3);
+      filter: blur(12px);
+      opacity: 0.7;
+    }
+    h1 {
+      text-align: center;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      background: #1a1a1a;
+      color: white;
+    }
+    textarea {
+      height: 250px;
+    }
+    .buttons {
+      margin-top: 10px;
+      display: flex;
+      justify-content: space-between;
+    }
+    button {
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .save-btn { background-color: #4caf50; color: white; }
+    .delete-btn { background-color: #f44336; color: white; }
+    .theme-btn { background-color: #2196f3; color: white; }
+    .note-list {
+      margin-top: 20px;
+    }
+    .note-item {
+      background: #333;
+      padding: 10px;
+      border-radius: 6px;
+      margin-top: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .note-item span {
+      font-weight: bold;
+    }
+    .time {
+      font-size: 12px;
+      color: #ccc;
+    }
+    .light {
+      background-color: #f4f4f4;
+      color: #000;
+    }
+    .light input, .light textarea {
+      background: #fff;
+      color: #000;
+    }
+    .light .container {
+      background: rgba(255, 255, 255, 0.9);
+    }
+    .light .note-item {
+      background: #eee;
+    }
+    .light .time {
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Catatan Saya!</h1>
+    <input type="text" id="noteTitle" placeholder="Judul catatan..." />
+    <textarea id="noteContent" placeholder="Isi catatan..."></textarea>
+    <div class="buttons">
+      <button class="save-btn" onclick="saveNote()">Simpan</button>
+      <button class="theme-btn" onclick="toggleTheme()">Ganti Tema</button>
+    </div>
+    <div class="note-list" id="noteList">
+      <h3>Daftar Catatan:</h3>
+    </div>
+  </div>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js');
+    }
+    const noteTitle = document.getElementById("noteTitle");
+    const noteContent = document.getElementById("noteContent");
+    const noteList = document.getElementById("noteList");
+    function updateNoteList() {
+      noteList.innerHTML = "<h3>Daftar Catatan:</h3>";
+      for (let key in localStorage) {
+        if (localStorage.hasOwnProperty(key)) {
+          const data = JSON.parse(localStorage.getItem(key));
+          if (data && data.content) {
+            const item = document.createElement("div");
+            item.className = "note-item";
+            item.innerHTML = \`
+              <div>
+                <span>\${key}</span><br>
+                <div class="time">\${data.time}</div>
+              </div>
+              <div>
+                <button class="save-btn" onclick="openNote('\${key}')">Buka</button>
+                <button class="delete-btn" onclick="deleteNote('\${key}')">Hapus</button>
+              </div>
+            \`;
+            noteList.appendChild(item);
+          }
+        }
+      }
+    }
+    function saveNote() {
+      const title = noteTitle.value.trim();
+      const content = noteContent.value.trim();
+      const time = new Date().toLocaleString();
+      if (title && content) {
+        localStorage.setItem(title, JSON.stringify({ content, time }));
+        alert("Catatan disimpan!");
+        noteTitle.value = "";
+        noteContent.value = "";
+        updateNoteList();
+      } else {
+        alert("Judul dan isi catatan harus diisi.");
+      }
+    }
+    function openNote(title) {
+      const data = JSON.parse(localStorage.getItem(title));
+      if (data) {
+        noteTitle.value = title;
+        noteContent.value = data.content;
+      }
+    }
+    function deleteNote(title) {
+      if (confirm("Yakin hapus catatan ini?")) {
+        localStorage.removeItem(title);
+        updateNoteList();
+      }
+    }
+    function toggleTheme() {
+      document.body.classList.toggle("light");
+    }
+    updateNoteList();
+  </script>
+</body>
+</html>
